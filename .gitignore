@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local machine
+local.properties
+*.local
+
+# Android Studio
+.idea/
+*.iml
+
+# Generated native/build output
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Signing credentials
+*.jks
+*.keystore
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.log
