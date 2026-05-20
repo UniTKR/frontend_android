@@ -1,4 +1,4 @@
-package com.unitt.unitt.features.onboarding
+﻿package com.unitt.unitt.features.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -127,6 +129,8 @@ private fun SchoolSelectionScreen(state: OnboardingUiState, viewModel: Onboardin
             label = stringResource(R.string.search),
             placeholder = stringResource(R.string.school_search_hint),
             modifier = Modifier.testTag("school-search-field"),
+            leadingIcon = Icons.Outlined.Search,
+            leadingIconDescription = stringResource(R.string.search),
         )
         Text(stringResource(R.string.popular_schools), style = UniTTTheme.typography.labelMedium, color = UniTTTheme.colors.textSecondary)
         state.filteredUniversities.forEach { university ->
@@ -178,6 +182,8 @@ private fun EmailVerificationScreen(state: OnboardingUiState, viewModel: Onboard
             placeholder = "student.id",
             keyboardType = KeyboardType.Email,
             modifier = Modifier.testTag("email-local-part-field"),
+            leadingIcon = Icons.Outlined.Email,
+            leadingIconDescription = stringResource(R.string.school_email),
         )
         Notice("@${state.selectedUniversity?.domain ?: University.popular.first().domain} 주소로 인증 메일을 보냅니다.")
         Spacer(Modifier.height(UniTTTheme.spacing.x24))
@@ -295,6 +301,7 @@ private fun ProfileSetupScreen(state: OnboardingUiState, viewModel: OnboardingVi
             UniTTSecondaryButton(
                 text = if (state.hasProfilePhoto) "사진 선택됨" else "프로필 사진 선택",
                 onClick = { viewModel.setProfilePhotoSelected(!state.hasProfilePhoto) },
+                leadingIcon = if (state.hasProfilePhoto) Icons.Outlined.CheckCircle else Icons.Outlined.PhotoCamera,
             )
         }
         UniTTTextField(

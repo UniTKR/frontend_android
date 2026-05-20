@@ -1,4 +1,4 @@
-package com.unitt.unitt.features.main
+﻿package com.unitt.unitt.features.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,9 +17,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,10 +32,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.unitt.unitt.R
@@ -39,6 +47,7 @@ import com.unitt.unitt.core.model.ListingStatus
 import com.unitt.unitt.core.model.MockChat
 import com.unitt.unitt.core.model.MockData
 import com.unitt.unitt.core.model.MockListing
+import com.unitt.unitt.core.model.MockNotification
 import com.unitt.unitt.core.model.NotificationTab
 import com.unitt.unitt.core.model.ReportTarget
 import com.unitt.unitt.core.model.UserTab
@@ -48,10 +57,12 @@ import com.unitt.unitt.designsystem.UniTTBottomTabs
 import com.unitt.unitt.designsystem.UniTTCard
 import com.unitt.unitt.designsystem.UniTTChip
 import com.unitt.unitt.designsystem.UniTTEmptyState
+import com.unitt.unitt.designsystem.UniTTIconButton
 import com.unitt.unitt.designsystem.UniTTPrimaryButton
 import com.unitt.unitt.designsystem.UniTTScreenScaffold
 import com.unitt.unitt.designsystem.UniTTSecondaryButton
 import com.unitt.unitt.designsystem.UniTTSwitchRow
+import com.unitt.unitt.designsystem.UniTTTabItem
 import com.unitt.unitt.designsystem.UniTTTextField
 import com.unitt.unitt.designsystem.UniTTTheme
 import com.unitt.unitt.designsystem.UniTTTopBar
@@ -108,9 +119,13 @@ private fun HomeScreen(state: UserPrototypeUiState, viewModel: UserPrototypeView
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 UniTTWordmark(compact = true, modifier = Modifier.weight(1f))
-                TextButton(onClick = viewModel::openNotifications, modifier = Modifier.testTag("home-notifications-button")) {
-                    Text(stringResource(R.string.notifications), color = UniTTTheme.colors.brandPrimary)
-                }
+                UniTTIconButton(
+                    icon = Icons.Outlined.NotificationsNone,
+                    contentDescription = stringResource(R.string.notifications),
+                    onClick = viewModel::openNotifications,
+                    tint = UniTTTheme.colors.brandPrimary,
+                    testTag = "home-notifications-button",
+                )
             }
         }
         item {
@@ -124,6 +139,7 @@ private fun HomeScreen(state: UserPrototypeUiState, viewModel: UserPrototypeView
                 text = stringResource(R.string.search),
                 onClick = { viewModel.openSearch() },
                 modifier = Modifier.testTag("home-search-button"),
+                leadingIcon = Icons.Outlined.Search,
             )
         }
         item {
@@ -181,6 +197,8 @@ private fun SearchScreen(state: UserPrototypeUiState, viewModel: UserPrototypeVi
                 label = stringResource(R.string.search),
                 placeholder = "찾고 싶은 물건을 검색해 보세요",
                 modifier = Modifier.testTag("search-field"),
+                leadingIcon = Icons.Outlined.Search,
+                leadingIconDescription = stringResource(R.string.search),
             )
         }
         if (state.searchText.isBlank()) {
@@ -225,6 +243,9 @@ private fun ProductDetailScreen(state: UserPrototypeUiState, viewModel: UserProt
                 onBack = viewModel::backToMain,
                 rightText = stringResource(R.string.report),
                 onRight = { viewModel.startReport() },
+                rightIcon = Icons.Outlined.ErrorOutline,
+                rightContentDescription = stringResource(R.string.report),
+                rightTestTag = "top-right-button",
             )
         },
         bottomBar = {
@@ -235,12 +256,14 @@ private fun ProductDetailScreen(state: UserPrototypeUiState, viewModel: UserProt
                             stringResource(R.string.join_waitlist),
                             onClick = {},
                             modifier = Modifier.weight(1f).testTag("join-waitlist-button"),
+                            leadingIcon = Icons.Outlined.Schedule,
                         )
                     } else {
                         UniTTPrimaryButton(
                             stringResource(R.string.start_chat),
                             onClick = { viewModel.openTab(UserTab.Chat) },
                             modifier = Modifier.weight(1f).testTag("start-chat-button"),
+                            leadingIcon = Icons.Outlined.ChatBubbleOutline,
                         )
                     }
                 }
@@ -295,7 +318,7 @@ private fun ProductDetailScreen(state: UserPrototypeUiState, viewModel: UserProt
 @Composable
 private fun ListingCreateScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
     Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("listing-create-screen")) {
-        UniTTTopBar(title = stringResource(R.string.create_listing))
+        UniTTTopBar(title = stringResource(R.string.create_listing), applyStatusPadding = false)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -328,14 +351,44 @@ private fun ListingCreateScreen(state: UserPrototypeUiState, viewModel: UserProt
 @Composable
 private fun CreateCategoryStep(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
     Text("어떤 물건을 등록할까요?", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
+    Column(verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x10)) {
         ListingCreateCategory.entries.forEach { category ->
-            UniTTChip(
-                text = category.label,
-                selected = state.selectedCreateCategory == category,
+            val selected = state.selectedCreateCategory == category
+            UniTTCard(
                 onClick = { viewModel.selectCreateCategory(category) },
                 modifier = Modifier.testTag(if (category == ListingCreateCategory.Textbook) "create-category-textbook" else "create-category-${category.label}"),
-            )
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .testTag("create-category-icon-${category.name}")
+                            .background(if (selected) UniTTTheme.colors.brandPrimarySubtle else UniTTTheme.colors.backgroundSurface),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = createCategoryIcon(category),
+                            contentDescription = category.label,
+                            tint = if (selected) UniTTTheme.colors.brandPrimary else UniTTTheme.colors.textSecondary,
+                        )
+                    }
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x2)) {
+                        Text(category.label, style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textPrimary)
+                        Text(category.detailHint, style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
+                    }
+                    if (selected) {
+                        Icon(
+                            imageVector = Icons.Outlined.CheckCircle,
+                            contentDescription = "선택됨",
+                            tint = UniTTTheme.colors.brandPrimary,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -376,19 +429,26 @@ private fun CreatePickupStep(state: UserPrototypeUiState, viewModel: UserPrototy
             title = spot,
             trailing = if (state.createPickup == spot) "선택됨" else null,
             onClick = { viewModel.updateCreatePickup(spot) },
+            leadingIcon = Icons.Outlined.Place,
         )
     }
-    UniTTSecondaryButton("지도 보기", onClick = viewModel::togglePickupMap)
+    UniTTSecondaryButton("지도 보기", onClick = viewModel::togglePickupMap, leadingIcon = Icons.Outlined.Map)
     if (state.showingMapPickup) {
         Box(Modifier.fillMaxWidth().height(UniTTTheme.spacing.x64 * 2).background(UniTTTheme.colors.backgroundCanvas).testTag("pickup-map-view"), contentAlignment = Alignment.Center) {
-            Text("캠퍼스 지도", color = UniTTTheme.colors.brandPrimary)
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
+                Icon(Icons.Outlined.Map, contentDescription = null, tint = UniTTTheme.colors.brandPrimary)
+                Text("캠퍼스 지도", color = UniTTTheme.colors.brandPrimary)
+            }
         }
     }
 }
 
 @Composable
 private fun CreatePreviewStep(state: UserPrototypeUiState) {
-    Text("미리보기", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
+        Icon(Icons.Outlined.Visibility, contentDescription = null, tint = UniTTTheme.colors.brandPrimary)
+        Text("미리보기", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
+    }
     ListingCard(
         listing = MockListing(
             id = "preview",
@@ -409,9 +469,10 @@ private fun CreatePreviewStep(state: UserPrototypeUiState) {
 @Composable
 private fun CreateDoneScreen(viewModel: UserPrototypeViewModel) {
     Column(Modifier.fillMaxWidth().testTag("create-done-screen"), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16)) {
+        Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = UniTTTheme.colors.brandPrimary, modifier = Modifier.size(48.dp))
         Text(stringResource(R.string.create_done_title), style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
         Text("학교 피드에 등록한 상품이 표시됩니다.", style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textSecondary)
-        UniTTPrimaryButton(stringResource(R.string.go_home), onClick = viewModel::resetCreateFlow, modifier = Modifier.testTag("create-done-home"))
+        UniTTPrimaryButton(stringResource(R.string.go_home), onClick = viewModel::resetCreateFlow, modifier = Modifier.testTag("create-done-home"), leadingIcon = Icons.Outlined.Home)
     }
 }
 
@@ -435,7 +496,15 @@ private fun ChatListScreen(viewModel: UserPrototypeViewModel) {
 private fun ChatRoomScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
     val chat = state.selectedChat ?: MockData.chats.first()
     Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("chat-room-screen")) {
-        UniTTTopBar(title = chat.name, onBack = viewModel::backToMain, rightText = "메뉴", onRight = viewModel::toggleChatActions)
+        UniTTTopBar(
+            title = chat.name,
+            onBack = viewModel::backToMain,
+            rightText = "메뉴",
+            onRight = viewModel::toggleChatActions,
+            rightIcon = Icons.Outlined.MoreVert,
+            rightContentDescription = stringResource(R.string.chat_menu),
+            rightTestTag = "top-right-button",
+        )
         Column(Modifier.weight(1f).padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16)) {
             UniTTCard {
                 Text(chat.listingTitle, style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textPrimary)
@@ -446,11 +515,11 @@ private fun ChatRoomScreen(state: UserPrototypeUiState, viewModel: UserPrototype
             MessageBubble(chat.lastMessage, false)
             if (state.showingChatActions) {
                 UniTTCard(modifier = Modifier.testTag("chat-action-menu")) {
-                    UniTTSecondaryButton(stringResource(R.string.suggest_appointment), onClick = viewModel::openAppointmentSheet, modifier = Modifier.testTag("appointment-suggest-button"))
-                    UniTTSecondaryButton(stringResource(R.string.block_user), onClick = viewModel::blockCurrentUser, modifier = Modifier.testTag("block-user-button"))
+                    UniTTSecondaryButton(stringResource(R.string.suggest_appointment), onClick = viewModel::openAppointmentSheet, modifier = Modifier.testTag("appointment-suggest-button"), leadingIcon = Icons.Outlined.CalendarToday)
+                    UniTTSecondaryButton(stringResource(R.string.block_user), onClick = viewModel::blockCurrentUser, modifier = Modifier.testTag("block-user-button"), leadingIcon = Icons.Outlined.Block)
                 }
             }
-            UniTTSecondaryButton(stringResource(R.string.suggest_appointment), onClick = viewModel::openAppointmentSheet, modifier = Modifier.testTag("appointment-menu-button"))
+            UniTTSecondaryButton(stringResource(R.string.suggest_appointment), onClick = viewModel::openAppointmentSheet, modifier = Modifier.testTag("appointment-menu-button"), leadingIcon = Icons.Outlined.CalendarToday)
             if (state.showingAppointmentSheet) {
                 AppointmentSheet(viewModel)
             }
@@ -461,9 +530,12 @@ private fun ChatRoomScreen(state: UserPrototypeUiState, viewModel: UserPrototype
 @Composable
 private fun AppointmentSheet(viewModel: UserPrototypeViewModel) {
     UniTTCard {
-        Text("약속 제안", style = UniTTTheme.typography.heading3, color = UniTTTheme.colors.textPrimary)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
+            Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = UniTTTheme.colors.brandPrimary)
+            Text("약속 제안", style = UniTTTheme.typography.heading3, color = UniTTTheme.colors.textPrimary)
+        }
         Text("오늘 18:00 · 정문", style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textSecondary)
-        UniTTPrimaryButton(stringResource(R.string.send_appointment), onClick = viewModel::submitAppointment, modifier = Modifier.testTag("appointment-submit-button"))
+        UniTTPrimaryButton(stringResource(R.string.send_appointment), onClick = viewModel::submitAppointment, modifier = Modifier.testTag("appointment-submit-button"), leadingIcon = Icons.Outlined.Schedule)
     }
 }
 
@@ -478,11 +550,13 @@ private fun TradePanelScreen(state: UserPrototypeUiState, viewModel: UserPrototy
                     stringResource(R.string.open_dispute),
                     onClick = viewModel::disputeTrade,
                     modifier = Modifier.weight(1f).testTag("trade-dispute-button"),
+                    leadingIcon = Icons.Outlined.ErrorOutline,
                 )
                 UniTTPrimaryButton(
                     stringResource(R.string.complete_trade),
                     onClick = viewModel::completeTrade,
                     modifier = Modifier.weight(1f).testTag("trade-complete-button"),
+                    leadingIcon = Icons.Outlined.CheckCircle,
                 )
             }
         },
@@ -506,6 +580,7 @@ private fun ReviewScreen(state: UserPrototypeUiState, viewModel: UserPrototypeVi
                     enabled = state.canSubmitReview,
                     onClick = viewModel::submitReview,
                     modifier = Modifier.weight(1f).testTag("review-submit-button"),
+                    leadingIcon = Icons.Outlined.Star,
                 )
             }
         },
@@ -514,7 +589,12 @@ private fun ReviewScreen(state: UserPrototypeUiState, viewModel: UserPrototypeVi
             Row(horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
                 (1..5).forEach { star ->
                     TextButton(onClick = { viewModel.updateReviewRating(star) }, modifier = Modifier.testTag("review-star-$star")) {
-                        Text(if (state.reviewRating >= star) "★" else "☆", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.brandPrimary)
+                        Icon(
+                            imageVector = if (state.reviewRating >= star) Icons.Outlined.Star else Icons.Outlined.StarBorder,
+                            contentDescription = "$star 점",
+                            tint = UniTTTheme.colors.brandPrimary,
+                            modifier = Modifier.size(30.dp),
+                        )
                     }
                 }
             }
@@ -531,8 +611,15 @@ private fun ReportFlowScreen(state: UserPrototypeUiState, viewModel: UserPrototy
             when (state.reportStep) {
                 ReportStep.Target -> {
                     Text("무엇을 신고할까요?", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
-                    ReportTarget.entries.forEach { target -> UniTTRow(target.label, trailing = if (state.reportTarget == target) "선택됨" else null, onClick = { viewModel.updateReportTarget(target) }) }
-                    UniTTPrimaryButton(stringResource(R.string.next), onClick = viewModel::nextReportStep, modifier = Modifier.testTag("report-next"))
+                    ReportTarget.entries.forEach { target ->
+                        UniTTRow(
+                            target.label,
+                            trailing = if (state.reportTarget == target) "선택됨" else null,
+                            onClick = { viewModel.updateReportTarget(target) },
+                            leadingIcon = reportTargetIcon(target),
+                        )
+                    }
+                    UniTTPrimaryButton(stringResource(R.string.next), onClick = viewModel::nextReportStep, modifier = Modifier.testTag("report-next"), leadingIcon = Icons.Outlined.CheckCircle)
                 }
                 ReportStep.Reason -> {
                     Text("신고 사유를 선택해 주세요", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
@@ -542,20 +629,22 @@ private fun ReportFlowScreen(state: UserPrototypeUiState, viewModel: UserPrototy
                             trailing = if (state.reportReason == reason) "선택됨" else null,
                             onClick = { viewModel.updateReportReason(reason) },
                             modifier = Modifier.testTag(if (reason == "노쇼/약속 불이행") "report-reason-noshow" else "report-reason-$reason"),
+                            leadingIcon = Icons.Outlined.ErrorOutline,
                         )
                     }
-                    UniTTPrimaryButton(stringResource(R.string.next), enabled = state.canContinueReport, onClick = viewModel::nextReportStep, modifier = Modifier.testTag("report-next"))
+                    UniTTPrimaryButton(stringResource(R.string.next), enabled = state.canContinueReport, onClick = viewModel::nextReportStep, modifier = Modifier.testTag("report-next"), leadingIcon = Icons.Outlined.CheckCircle)
                 }
                 ReportStep.Detail -> {
                     Text("상세 내용을 적어 주세요", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
                     UniTTTextField(state.reportDetail, viewModel::updateReportDetail, "내용", singleLine = false)
-                    UniTTPrimaryButton(stringResource(R.string.report), enabled = state.canContinueReport, onClick = viewModel::nextReportStep, modifier = Modifier.testTag("report-next"))
+                    UniTTPrimaryButton(stringResource(R.string.report), enabled = state.canContinueReport, onClick = viewModel::nextReportStep, modifier = Modifier.testTag("report-next"), leadingIcon = Icons.Outlined.ErrorOutline)
                 }
                 ReportStep.Done -> {
                     Column(Modifier.fillMaxWidth().testTag("report-done-screen"), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
+                        Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = UniTTTheme.colors.stateDanger, modifier = Modifier.size(48.dp))
                         Text(stringResource(R.string.report_done_title), style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
                         Text("운영팀이 검토한 뒤 필요한 조치를 진행합니다.", style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textSecondary)
-                        UniTTPrimaryButton(stringResource(R.string.go_home), onClick = viewModel::resetToHome)
+                        UniTTPrimaryButton(stringResource(R.string.go_home), onClick = viewModel::resetToHome, leadingIcon = Icons.Outlined.Home)
                     }
                 }
             }
@@ -576,10 +665,13 @@ private fun BlockListScreen(state: UserPrototypeUiState, viewModel: UserPrototyp
         Column(Modifier.padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
             if (state.showingBlockToast) {
                 UniTTCard(modifier = Modifier.testTag("block-toast")) {
-                    Text("사용자를 차단했어요.", color = UniTTTheme.colors.stateSuccessText)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
+                        Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = UniTTTheme.colors.stateSuccessText)
+                        Text("사용자를 차단했어요.", color = UniTTTheme.colors.stateSuccessText)
+                    }
                 }
             }
-            MockData.blockedUsers.forEach { user -> UniTTRow(user, subtitle = "채팅과 거래 요청이 제한됩니다.") }
+            MockData.blockedUsers.forEach { user -> UniTTRow(user, subtitle = "채팅과 거래 요청이 제한됩니다.", leadingIcon = Icons.Outlined.Block) }
         }
     }
 }
@@ -587,7 +679,15 @@ private fun BlockListScreen(state: UserPrototypeUiState, viewModel: UserPrototyp
 @Composable
 private fun NotificationsScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
     Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("notifications-screen")) {
-        UniTTTopBar(title = stringResource(R.string.notifications), onBack = viewModel::backToMain, rightText = stringResource(R.string.settings), onRight = viewModel::openNotificationSettings)
+        UniTTTopBar(
+            title = stringResource(R.string.notifications),
+            onBack = viewModel::backToMain,
+            rightText = stringResource(R.string.settings),
+            onRight = viewModel::openNotificationSettings,
+            rightIcon = Icons.Outlined.Settings,
+            rightContentDescription = stringResource(R.string.settings),
+            rightTestTag = "top-settings-button",
+        )
         Column(Modifier.padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
                 NotificationTab.entries.forEach { tab ->
@@ -596,21 +696,63 @@ private fun NotificationsScreen(state: UserPrototypeUiState, viewModel: UserProt
             }
             if (state.notificationTab == NotificationTab.System) {
                 UniTTCard(modifier = Modifier.testTag("notification-settings-screen")) {
-                    UniTTSwitchRow("푸시 알림", state.pushEnabled, viewModel::togglePushEnabled)
-                    UniTTSwitchRow("마케팅 알림", state.marketingEnabled, viewModel::toggleMarketingEnabled)
+                    UniTTSwitchRow("푸시 알림", state.pushEnabled, viewModel::togglePushEnabled, subtitle = stringResource(R.string.notification_push_subtitle), leadingIcon = Icons.Outlined.Notifications)
+                    UniTTSwitchRow("마케팅 알림", state.marketingEnabled, viewModel::toggleMarketingEnabled, subtitle = stringResource(R.string.notification_marketing_subtitle), leadingIcon = Icons.Outlined.NotificationsNone)
                 }
             }
             if (state.visibleNotifications.isEmpty()) {
-                UniTTEmptyState("알림이 없어요", "새로운 거래나 채팅 알림이 여기에 표시됩니다.", modifier = Modifier.testTag("notifications-empty-screen"))
+                UniTTEmptyState(
+                    "알림이 없어요",
+                    "새로운 거래나 채팅 알림이 여기에 표시됩니다.",
+                    modifier = Modifier.testTag("notifications-empty-screen"),
+                    icon = Icons.Outlined.NotificationsNone,
+                    iconDescription = stringResource(R.string.notifications),
+                )
             } else {
                 state.visibleNotifications.forEach { notification ->
-                    UniTTCard {
-                        Text(notification.title, style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textPrimary)
-                        Text(notification.body, style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
-                        Text(notification.time, style = UniTTTheme.typography.labelSmall, color = UniTTTheme.colors.textTertiary)
-                    }
+                    NotificationRow(notification)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun NotificationRow(notification: MockNotification) {
+    UniTTCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(
+                        when (notification.tab) {
+                            NotificationTab.Trade -> UniTTTheme.colors.chipReservedBg
+                            NotificationTab.Chat -> UniTTTheme.colors.brandPrimarySubtle
+                            NotificationTab.System -> UniTTTheme.colors.backgroundSurface
+                        },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = notificationIcon(notification.tab),
+                    contentDescription = notification.tab.label,
+                    tint = when (notification.tab) {
+                        NotificationTab.Trade -> UniTTTheme.colors.chipReservedInk
+                        NotificationTab.Chat -> UniTTTheme.colors.brandPrimary
+                        NotificationTab.System -> UniTTTheme.colors.textSecondary
+                    },
+                )
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x4)) {
+                Text(notification.title, style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textPrimary)
+                Text(notification.body, style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
+            }
+            Text(notification.time, style = UniTTTheme.typography.labelSmall, color = UniTTTheme.colors.textTertiary)
         }
     }
 }
@@ -624,17 +766,21 @@ private fun MyPageScreen(viewModel: UserPrototypeViewModel) {
                 Text("관악구학생", style = UniTTTheme.typography.heading2, color = UniTTTheme.colors.textPrimary)
                 Text("서울대학교 인증 완료", style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
             }
-            TextButton(onClick = viewModel::openSettings, modifier = Modifier.testTag("my-settings-button")) {
-                Text(stringResource(R.string.settings), color = UniTTTheme.colors.brandPrimary)
-            }
+            UniTTIconButton(
+                icon = Icons.Outlined.Settings,
+                contentDescription = stringResource(R.string.settings),
+                onClick = viewModel::openSettings,
+                tint = UniTTTheme.colors.brandPrimary,
+                testTag = "my-settings-button",
+            )
         }
         UniTTCard {
             Text("보존형 F", style = UniTTTheme.typography.labelSmall, color = UniTTTheme.colors.textTertiary)
             Text("Hi-Fi 원본이 나오기 전까지 기존 기능을 유지합니다.", style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
         }
-        UniTTRow("내 판매/구매 내역", subtitle = "완료, 취소, 분쟁 상태 확인", onClick = viewModel::openHistory)
-        UniTTRow("알림 센터", onClick = viewModel::openNotifications)
-        UniTTRow("차단 목록", onClick = { viewModel.blockCurrentUser() })
+        UniTTRow("내 판매/구매 내역", subtitle = "완료, 취소, 분쟁 상태 확인", onClick = viewModel::openHistory, leadingIcon = Icons.Outlined.History)
+        UniTTRow("알림 센터", onClick = viewModel::openNotifications, leadingIcon = Icons.Outlined.Notifications)
+        UniTTRow("차단 목록", onClick = { viewModel.blockCurrentUser() }, leadingIcon = Icons.Outlined.Block)
     }
 }
 
@@ -653,10 +799,10 @@ private fun SettingsScreen(state: UserPrototypeUiState, viewModel: UserPrototype
     Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("settings-screen")) {
         UniTTTopBar(title = stringResource(R.string.settings), onBack = viewModel::backToMain)
         Column(Modifier.verticalScroll(rememberScrollState()).padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
-            UniTTSwitchRow("푸시 알림", state.pushEnabled, viewModel::togglePushEnabled)
-            UniTTSwitchRow("마케팅 알림", state.marketingEnabled, viewModel::toggleMarketingEnabled)
-            UniTTRow(stringResource(R.string.withdraw), onClick = viewModel::openWithdraw)
-            UniTTSecondaryButton(stringResource(R.string.logout), onClick = viewModel::requestLogout, modifier = Modifier.testTag("settings-logout-button"))
+            UniTTSwitchRow("푸시 알림", state.pushEnabled, viewModel::togglePushEnabled, leadingIcon = Icons.Outlined.Notifications)
+            UniTTSwitchRow("마케팅 알림", state.marketingEnabled, viewModel::toggleMarketingEnabled, leadingIcon = Icons.Outlined.NotificationsNone)
+            UniTTRow(stringResource(R.string.withdraw), onClick = viewModel::openWithdraw, leadingIcon = Icons.Outlined.ErrorOutline)
+            UniTTSecondaryButton(stringResource(R.string.logout), onClick = viewModel::requestLogout, modifier = Modifier.testTag("settings-logout-button"), leadingIcon = Icons.Outlined.Block)
         }
         if (state.showingLogoutDialog) {
             AlertDialog(
@@ -689,10 +835,44 @@ private fun WithdrawScreen(viewModel: UserPrototypeViewModel) {
 @Composable
 private fun BottomTabs(activeTab: UserTab, onSelect: (UserTab) -> Unit) {
     UniTTBottomTabs(
-        labels = UserTab.entries.map { it.label },
+        items = UserTab.entries.map { tab ->
+            UniTTTabItem(
+                label = tab.label,
+                icon = userTabIcon(tab),
+                contentDescription = tab.label,
+            )
+        },
         selectedLabel = activeTab.label,
         onSelect = { label -> UserTab.entries.firstOrNull { it.label == label }?.let(onSelect) },
     )
+}
+
+private fun userTabIcon(tab: UserTab): ImageVector = when (tab) {
+    UserTab.Home -> Icons.Outlined.Home
+    UserTab.Search -> Icons.Outlined.Search
+    UserTab.Create -> Icons.Outlined.Add
+    UserTab.Chat -> Icons.Outlined.ChatBubbleOutline
+    UserTab.My -> Icons.Outlined.PersonOutline
+}
+
+private fun createCategoryIcon(category: ListingCreateCategory): ImageVector = when (category) {
+    ListingCreateCategory.Textbook -> Icons.AutoMirrored.Outlined.MenuBook
+    ListingCreateCategory.Electronics -> Icons.Outlined.Computer
+    ListingCreateCategory.Living -> Icons.Outlined.HomeWork
+    ListingCreateCategory.Moving -> Icons.Outlined.LocalShipping
+}
+
+private fun reportTargetIcon(target: ReportTarget): ImageVector = when (target) {
+    ReportTarget.Listing -> Icons.Outlined.Book
+    ReportTarget.User -> Icons.Outlined.Person
+    ReportTarget.Chat -> Icons.Outlined.ChatBubbleOutline
+    ReportTarget.Trade -> Icons.Outlined.ErrorOutline
+}
+
+private fun notificationIcon(tab: NotificationTab): ImageVector = when (tab) {
+    NotificationTab.Trade -> Icons.Outlined.CalendarToday
+    NotificationTab.Chat -> Icons.Outlined.ChatBubbleOutline
+    NotificationTab.System -> Icons.Outlined.ErrorOutline
 }
 
 @Composable

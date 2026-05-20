@@ -1,4 +1,4 @@
-package com.unitt.unitt.designsystem
+﻿package com.unitt.unitt.designsystem
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -27,10 +27,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -42,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,6 +54,36 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.unitt.unitt.R
+
+data class UniTTTabItem(
+    val label: String,
+    val icon: ImageVector,
+    val contentDescription: String = label,
+)
+
+@Composable
+fun UniTTIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    tint: Color = UniTTTheme.colors.textPrimary,
+    testTag: String? = null,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(UniTTTheme.sizes.touchMinimum)
+            .then(if (testTag == null) Modifier else Modifier.testTag(testTag)),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(22.dp),
+        )
+    }
+}
 
 @Composable
 fun UniTTScreenScaffold(
@@ -104,7 +139,7 @@ fun UniTTBottomActionBar(
 
 @Composable
 fun UniTTBottomTabs(
-    labels: List<String>,
+    items: List<UniTTTabItem>,
     selectedLabel: String,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -124,20 +159,34 @@ fun UniTTBottomTabs(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
         ) {
-            labels.forEach { label ->
+            items.forEach { item ->
+                val selected = selectedLabel == item.label
                 TextButton(
-                    onClick = { onSelect(label) },
+                    onClick = { onSelect(item.label) },
                     modifier = Modifier
                         .weight(1f)
                         .height(UniTTTheme.sizes.touchMinimum)
-                        .testTag("tab-$label"),
+                        .testTag("tab-${item.label}"),
                     contentPadding = PaddingValues(horizontal = UniTTTheme.spacing.x4),
                 ) {
-                    Text(
-                        label,
-                        style = UniTTTheme.typography.labelLarge,
-                        color = if (selectedLabel == label) UniTTTheme.colors.brandPrimary else UniTTTheme.colors.textSecondary,
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x2),
+                    ) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.contentDescription,
+                            tint = if (selected) UniTTTheme.colors.brandPrimary else UniTTTheme.colors.textSecondary,
+                            modifier = Modifier
+                                .size(21.dp)
+                                .testTag("tab-icon-${item.label}"),
+                        )
+                        Text(
+                            item.label,
+                            style = UniTTTheme.typography.labelSmall,
+                            color = if (selected) UniTTTheme.colors.brandPrimary else UniTTTheme.colors.textSecondary,
+                        )
+                    }
                 }
             }
         }
@@ -173,6 +222,7 @@ fun UniTTPrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
 ) {
     Button(
         onClick = onClick,
@@ -188,6 +238,14 @@ fun UniTTPrimaryButton(
         ),
         shape = RoundedCornerShape(UniTTTheme.radius.xl),
     ) {
+        if (leadingIcon != null) {
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(UniTTTheme.spacing.x6))
+        }
         Text(text = text, style = UniTTTheme.typography.labelLarge)
     }
 }
@@ -198,6 +256,7 @@ fun UniTTSecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
 ) {
     Button(
         onClick = onClick,
@@ -214,6 +273,14 @@ fun UniTTSecondaryButton(
         shape = RoundedCornerShape(UniTTTheme.radius.xl),
         border = BorderStroke(1.dp, UniTTTheme.colors.borderDefault),
     ) {
+        if (leadingIcon != null) {
+            Icon(
+                imageVector = leadingIcon,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(UniTTTheme.spacing.x6))
+        }
         Text(text = text, style = UniTTTheme.typography.labelLarge)
     }
 }
@@ -227,6 +294,10 @@ fun UniTTTextField(
     placeholder: String = "",
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
+    leadingIcon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
+    leadingIconDescription: String? = null,
+    trailingIconDescription: String? = null,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x4), modifier = modifier) {
         Text(label, style = UniTTTheme.typography.labelSmall, color = UniTTTheme.colors.textSecondary)
@@ -236,6 +307,24 @@ fun UniTTTextField(
             placeholder = { Text(placeholder, color = UniTTTheme.colors.textTertiary) },
             textStyle = UniTTTheme.typography.bodyMedium,
             singleLine = singleLine,
+            leadingIcon = leadingIcon?.let { icon ->
+                {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = leadingIconDescription,
+                        tint = UniTTTheme.colors.textTertiary,
+                    )
+                }
+            },
+            trailingIcon = trailingIcon?.let { icon ->
+                {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = trailingIconDescription,
+                        tint = UniTTTheme.colors.textTertiary,
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             shape = RoundedCornerShape(UniTTTheme.radius.lg),
@@ -270,8 +359,12 @@ fun UniTTPasswordField(
             singleLine = true,
             visualTransformation = if (showsText) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                TextButton(onClick = onToggleVisibility) {
-                    Text(if (showsText) "숨김" else "보기", style = UniTTTheme.typography.labelSmall)
+                IconButton(onClick = onToggleVisibility) {
+                    Icon(
+                        imageVector = if (showsText) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                        contentDescription = if (showsText) "비밀번호 숨기기" else "비밀번호 보기",
+                        tint = UniTTTheme.colors.textSecondary,
+                    )
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -296,6 +389,10 @@ fun UniTTTopBar(
     onBack: (() -> Unit)? = null,
     rightText: String? = null,
     onRight: (() -> Unit)? = null,
+    rightIcon: ImageVector? = null,
+    rightContentDescription: String? = rightText,
+    rightTestTag: String? = null,
+    applyStatusPadding: Boolean = true,
 ) {
     Column(
         modifier = modifier
@@ -305,7 +402,7 @@ fun UniTTTopBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                .then(if (applyStatusPadding) Modifier.statusBarsPadding() else Modifier)
                 .height(UniTTTheme.sizes.navBarHeight)
                 .padding(horizontal = UniTTTheme.spacing.x6),
             verticalAlignment = Alignment.CenterVertically,
@@ -313,15 +410,14 @@ fun UniTTTopBar(
             if (onBack == null) {
                 Spacer(Modifier.size(UniTTTheme.sizes.touchMinimum))
             } else {
-                TextButton(
+                UniTTIconButton(
+                    icon = Icons.Outlined.ArrowBackIosNew,
+                    contentDescription = "뒤로가기",
                     onClick = onBack,
                     modifier = Modifier
-                        .size(UniTTTheme.sizes.touchMinimum)
-                        .testTag("top-back-button"),
-                    contentPadding = PaddingValues(),
-                ) {
-                    Text("<", style = UniTTTheme.typography.heading2, color = UniTTTheme.colors.textPrimary)
-                }
+                        .size(UniTTTheme.sizes.touchMinimum),
+                    testTag = "top-back-button",
+                )
             }
             Text(
                 title,
@@ -332,12 +428,20 @@ fun UniTTTopBar(
             )
             if (rightText == null || onRight == null) {
                 Spacer(Modifier.size(UniTTTheme.sizes.touchMinimum))
+            } else if (rightIcon != null) {
+                UniTTIconButton(
+                    icon = rightIcon,
+                    contentDescription = rightContentDescription ?: rightText,
+                    onClick = onRight,
+                    tint = UniTTTheme.colors.brandPrimary,
+                    testTag = rightTestTag ?: if (rightText == "설정") "top-settings-button" else "top-right-button",
+                )
             } else {
                 TextButton(
                     onClick = onRight,
                     modifier = Modifier
                         .height(UniTTTheme.sizes.touchMinimum)
-                        .testTag(if (rightText == "설정") "top-settings-button" else "top-right-button"),
+                        .testTag(rightTestTag ?: if (rightText == "설정") "top-settings-button" else "top-right-button"),
                     contentPadding = PaddingValues(horizontal = UniTTTheme.spacing.x8),
                 ) {
                     Text(rightText, style = UniTTTheme.typography.labelMedium, color = UniTTTheme.colors.brandPrimary)
@@ -396,15 +500,30 @@ fun UniTTEmptyState(
     title: String,
     body: String,
     modifier: Modifier = Modifier,
+    icon: ImageVector = Icons.Outlined.NotificationsNone,
+    iconDescription: String? = null,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = UniTTTheme.spacing.x40),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8),
+        verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x10),
     ) {
-        Text("—", style = UniTTTheme.typography.displayMedium, color = UniTTTheme.colors.textTertiary)
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(UniTTTheme.colors.brandPrimarySubtle),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = iconDescription,
+                tint = UniTTTheme.colors.brandPrimary,
+                modifier = Modifier.size(30.dp),
+            )
+        }
         Text(title, style = UniTTTheme.typography.heading3, color = UniTTTheme.colors.textPrimary)
         Text(body, style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
     }
@@ -419,6 +538,10 @@ fun UniTTRow(
     onClick: (() -> Unit)? = null,
     checked: Boolean? = null,
     onCheckedChange: ((Boolean) -> Unit)? = null,
+    leadingIcon: ImageVector? = null,
+    leadingIconDescription: String? = null,
+    trailingIcon: ImageVector? = null,
+    trailingIconDescription: String? = null,
 ) {
     Row(
         modifier = modifier
@@ -432,6 +555,22 @@ fun UniTTRow(
         if (checked != null && onCheckedChange != null) {
             Checkbox(checked = checked, onCheckedChange = onCheckedChange)
         }
+        if (leadingIcon != null) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(UniTTTheme.colors.backgroundSurface),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = leadingIconDescription,
+                    tint = UniTTTheme.colors.brandPrimary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x2)) {
             Text(title, style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textPrimary)
             if (subtitle != null) {
@@ -440,6 +579,14 @@ fun UniTTRow(
         }
         if (trailing != null) {
             Text(trailing, style = UniTTTheme.typography.labelSmall, color = UniTTTheme.colors.textTertiary)
+        }
+        if (trailingIcon != null) {
+            Icon(
+                imageVector = trailingIcon,
+                contentDescription = trailingIconDescription,
+                tint = UniTTTheme.colors.textTertiary,
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }
@@ -451,12 +598,30 @@ fun UniTTSwitchRow(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    leadingIcon: ImageVector? = null,
+    leadingIconDescription: String? = null,
 ) {
     Row(
         modifier = modifier.fillMaxWidth().padding(vertical = UniTTTheme.spacing.x8),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12),
     ) {
+        if (leadingIcon != null) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(UniTTTheme.colors.backgroundSurface),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = leadingIconDescription,
+                    tint = UniTTTheme.colors.brandPrimary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
         Column(Modifier.weight(1f)) {
             Text(title, style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textPrimary)
             if (subtitle != null) {

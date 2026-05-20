@@ -71,6 +71,7 @@ class PrototypeFlowTest {
         launchPastAuth()
         composeRule.onNodeWithTag("tab-등록").performClick()
         waitForTag("listing-create-screen")
+        composeRule.onNodeWithTag("create-category-icon-Textbook", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag("create-category-textbook").performClick()
         composeRule.onNodeWithTag("create-next").performClick()
         composeRule.onNodeWithTag("create-next").performClick()
@@ -119,6 +120,12 @@ class PrototypeFlowTest {
         waitForTag("login-screen")
         composeRule.onNodeWithTag("login-button").performClick()
         waitForTag("user-home-screen")
+        composeRule.onNodeWithTag("home-notifications-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("tab-icon-홈", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("tab-icon-검색", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("tab-icon-등록", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("tab-icon-채팅", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("tab-icon-마이", useUnmergedTree = true).assertIsDisplayed()
     }
 
     private fun waitForTag(tag: String) {

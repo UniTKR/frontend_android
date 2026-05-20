@@ -69,6 +69,9 @@
     <string name="report_done_title">신고가 접수됐어요</string>
     <string name="block_list">차단 목록</string>
     <string name="notification_settings">알림 설정</string>
+    <string name="notification_push_subtitle">거래와 채팅 상태를 바로 알려드려요.</string>
+    <string name="notification_marketing_subtitle">캠퍼스 이벤트와 혜택 소식을 받아요.</string>
+    <string name="chat_menu">채팅 메뉴</string>
     <string name="my_page">마이</string>
     <string name="history">내 거래 내역</string>
     <string name="settings">설정</string>

@@ -1,4 +1,4 @@
-package com.unitt.unitt.features.auth
+﻿package com.unitt.unitt.features.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -133,6 +136,8 @@ private fun LoginScreen(
                 placeholder = "student.id@snu.ac.kr",
                 keyboardType = KeyboardType.Email,
                 modifier = Modifier.testTag("login-email-field"),
+                leadingIcon = Icons.Outlined.Email,
+                leadingIconDescription = stringResource(R.string.school_email),
             )
             UniTTPasswordField(
                 value = state.loginPassword,
@@ -149,6 +154,7 @@ private fun LoginScreen(
                     if (viewModel.login()) onAuthenticated()
                 },
                 modifier = Modifier.testTag("login-button"),
+                leadingIcon = Icons.AutoMirrored.Outlined.Login,
             )
         }
 
@@ -185,6 +191,8 @@ private fun ForgotEmailScreen(state: AuthUiState, viewModel: AuthViewModel) {
             placeholder = "student.id@snu.ac.kr",
             keyboardType = KeyboardType.Email,
             modifier = Modifier.testTag("forgot-email-field"),
+            leadingIcon = Icons.Outlined.Email,
+            leadingIconDescription = stringResource(R.string.school_email),
         )
         Notice("학교 도메인지 먼저 확인할게요.")
         Spacer(Modifier.weight(1f))
@@ -193,6 +201,7 @@ private fun ForgotEmailScreen(state: AuthUiState, viewModel: AuthViewModel) {
             enabled = state.canRequestResetCode,
             onClick = viewModel::requestResetCode,
             modifier = Modifier.testTag("forgot-email-next"),
+            leadingIcon = Icons.Outlined.LockReset,
         )
     }
 }
@@ -264,6 +273,7 @@ private fun ResetPasswordScreen(state: AuthUiState, viewModel: AuthViewModel) {
             enabled = state.canResetPassword,
             onClick = viewModel::resetPasswordAndReturnToLogin,
             modifier = Modifier.testTag("reset-password-submit"),
+            leadingIcon = Icons.Outlined.LockReset,
         )
     }
 }
