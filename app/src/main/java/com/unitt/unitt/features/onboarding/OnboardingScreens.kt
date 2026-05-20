@@ -31,6 +31,7 @@ import com.unitt.unitt.R
 import com.unitt.unitt.core.model.OnboardingStep
 import com.unitt.unitt.core.model.TermAgreement
 import com.unitt.unitt.core.model.University
+import com.unitt.unitt.designsystem.UniTTBottomActionBar
 import com.unitt.unitt.designsystem.UniTTAvatar
 import com.unitt.unitt.designsystem.UniTTCard
 import com.unitt.unitt.designsystem.UniTTPasswordField
@@ -73,6 +74,7 @@ private fun OnboardingScaffold(
     step: OnboardingStep,
     onBack: (() -> Unit)?,
     tag: String,
+    bottomBar: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -96,6 +98,7 @@ private fun OnboardingScaffold(
             verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x20),
             content = content,
         )
+        bottomBar?.invoke()
     }
 }
 
@@ -106,6 +109,16 @@ private fun SchoolSelectionScreen(state: OnboardingUiState, viewModel: Onboardin
         step = state.step,
         onBack = null,
         tag = "school-selection-screen",
+        bottomBar = {
+            UniTTBottomActionBar {
+                UniTTPrimaryButton(
+                    text = stringResource(R.string.next),
+                    enabled = state.canContinueFromSchool,
+                    onClick = viewModel::continueFromCurrentStep,
+                    modifier = Modifier.testTag("primary-cta"),
+                )
+            }
+        },
     ) {
         HeaderTitle(stringResource(R.string.school_select_title), stringResource(R.string.school_select_subtitle))
         UniTTTextField(
@@ -120,12 +133,6 @@ private fun SchoolSelectionScreen(state: OnboardingUiState, viewModel: Onboardin
             SchoolRow(university, state.selectedUniversity?.id == university.id, onClick = { viewModel.selectUniversity(university) })
         }
         Spacer(Modifier.height(UniTTTheme.spacing.x16))
-        UniTTPrimaryButton(
-            text = stringResource(R.string.next),
-            enabled = state.canContinueFromSchool,
-            onClick = viewModel::continueFromCurrentStep,
-            modifier = Modifier.testTag("primary-cta"),
-        )
     }
 }
 
@@ -152,6 +159,16 @@ private fun EmailVerificationScreen(state: OnboardingUiState, viewModel: Onboard
         step = state.step,
         onBack = viewModel::goBack,
         tag = "email-verification-screen",
+        bottomBar = {
+            UniTTBottomActionBar {
+                UniTTPrimaryButton(
+                    text = stringResource(R.string.send_verification_email),
+                    enabled = state.canSendVerificationEmail,
+                    onClick = viewModel::continueFromCurrentStep,
+                    modifier = Modifier.testTag("primary-cta"),
+                )
+            }
+        },
     ) {
         HeaderTitle(stringResource(R.string.email_title), stringResource(R.string.email_subtitle))
         UniTTTextField(
@@ -164,12 +181,6 @@ private fun EmailVerificationScreen(state: OnboardingUiState, viewModel: Onboard
         )
         Notice("@${state.selectedUniversity?.domain ?: University.popular.first().domain} 주소로 인증 메일을 보냅니다.")
         Spacer(Modifier.height(UniTTTheme.spacing.x24))
-        UniTTPrimaryButton(
-            text = stringResource(R.string.send_verification_email),
-            enabled = state.canSendVerificationEmail,
-            onClick = viewModel::continueFromCurrentStep,
-            modifier = Modifier.testTag("primary-cta"),
-        )
     }
 }
 
@@ -201,6 +212,16 @@ private fun PasswordSetupScreen(state: OnboardingUiState, viewModel: OnboardingV
         step = state.step,
         onBack = viewModel::goBack,
         tag = "password-setup-screen",
+        bottomBar = {
+            UniTTBottomActionBar {
+                UniTTPrimaryButton(
+                    text = stringResource(R.string.next),
+                    enabled = state.canContinuePassword,
+                    onClick = viewModel::continueFromCurrentStep,
+                    modifier = Modifier.testTag("primary-cta"),
+                )
+            }
+        },
     ) {
         HeaderTitle(stringResource(R.string.password_signup_title), "학교 인증 후 사용할 비밀번호를 설정해 주세요.")
         UniTTPasswordField(state.password, viewModel::updatePassword, stringResource(R.string.password), showsPassword, { showsPassword = !showsPassword })
@@ -209,12 +230,6 @@ private fun PasswordSetupScreen(state: OnboardingUiState, viewModel: OnboardingV
             state.passwordRules.forEach { RuleRow(it.title, it.satisfied) }
             RuleRow("비밀번호 일치", state.doPasswordsMatch)
         }
-        UniTTPrimaryButton(
-            text = stringResource(R.string.next),
-            enabled = state.canContinuePassword,
-            onClick = viewModel::continueFromCurrentStep,
-            modifier = Modifier.testTag("primary-cta"),
-        )
     }
 }
 
@@ -225,6 +240,16 @@ private fun TermsAgreementScreen(state: OnboardingUiState, viewModel: Onboarding
         step = state.step,
         onBack = viewModel::goBack,
         tag = "terms-agreement-screen",
+        bottomBar = {
+            UniTTBottomActionBar {
+                UniTTPrimaryButton(
+                    text = stringResource(R.string.next),
+                    enabled = state.canContinueTerms,
+                    onClick = viewModel::continueFromCurrentStep,
+                    modifier = Modifier.testTag("primary-cta"),
+                )
+            }
+        },
     ) {
         HeaderTitle(stringResource(R.string.terms_title), "필수 약관에 모두 동의해야 가입할 수 있어요.")
         UniTTRow(
@@ -243,12 +268,6 @@ private fun TermsAgreementScreen(state: OnboardingUiState, viewModel: Onboarding
                 modifier = Modifier.testTag("term-toggle-${term.id}"),
             )
         }
-        UniTTPrimaryButton(
-            text = stringResource(R.string.next),
-            enabled = state.canContinueTerms,
-            onClick = viewModel::continueFromCurrentStep,
-            modifier = Modifier.testTag("primary-cta"),
-        )
     }
 }
 
@@ -259,6 +278,16 @@ private fun ProfileSetupScreen(state: OnboardingUiState, viewModel: OnboardingVi
         step = state.step,
         onBack = viewModel::goBack,
         tag = "profile-setup-screen",
+        bottomBar = {
+            UniTTBottomActionBar {
+                UniTTPrimaryButton(
+                    text = stringResource(R.string.start),
+                    enabled = state.canFinishProfile,
+                    onClick = viewModel::continueFromCurrentStep,
+                    modifier = Modifier.testTag("primary-cta"),
+                )
+            }
+        },
     ) {
         HeaderTitle(stringResource(R.string.profile_title), "거래할 때 보이는 이름과 프로필을 설정해요.")
         Column(verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
@@ -275,11 +304,5 @@ private fun ProfileSetupScreen(state: OnboardingUiState, viewModel: OnboardingVi
             modifier = Modifier.testTag("nickname-field"),
         )
         Text(state.nicknameCountText, style = UniTTTheme.typography.bodySmall, color = if (state.isNicknameValid) UniTTTheme.colors.textSecondary else UniTTTheme.colors.stateDanger)
-        UniTTPrimaryButton(
-            text = stringResource(R.string.start),
-            enabled = state.canFinishProfile,
-            onClick = viewModel::continueFromCurrentStep,
-            modifier = Modifier.testTag("primary-cta"),
-        )
     }
 }

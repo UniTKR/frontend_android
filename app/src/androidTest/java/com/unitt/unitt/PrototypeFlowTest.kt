@@ -20,10 +20,10 @@ class PrototypeFlowTest {
 
         waitForTag("school-selection-screen")
         composeRule.onNodeWithTag("school-row-snu").performClick()
-        composeRule.onNodeWithTag("primary-cta").performScrollTo().performClick()
+        composeRule.onNodeWithTag("primary-cta").performClick()
 
         waitForTag("email-verification-screen")
-        composeRule.onNodeWithTag("primary-cta").performScrollTo().performClick()
+        composeRule.onNodeWithTag("primary-cta").performClick()
 
         waitForTag("otp-code-screen")
         composeRule.onNodeWithTag("keypad-digit-1").performClick()
@@ -31,13 +31,13 @@ class PrototypeFlowTest {
         composeRule.onNodeWithTag("keypad-digit-3").performClick()
 
         waitForTag("password-setup-screen")
-        composeRule.onNodeWithTag("primary-cta").performScrollTo().performClick()
+        composeRule.onNodeWithTag("primary-cta").performClick()
 
         waitForTag("terms-agreement-screen")
-        composeRule.onNodeWithTag("primary-cta").performScrollTo().performClick()
+        composeRule.onNodeWithTag("primary-cta").performClick()
 
         waitForTag("profile-setup-screen")
-        composeRule.onNodeWithTag("primary-cta").performScrollTo().performClick()
+        composeRule.onNodeWithTag("primary-cta").performClick()
 
         waitForTag("user-home-screen")
     }

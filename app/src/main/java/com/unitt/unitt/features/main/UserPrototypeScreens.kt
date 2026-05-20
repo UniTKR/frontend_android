@@ -5,14 +5,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -39,10 +43,13 @@ import com.unitt.unitt.core.model.NotificationTab
 import com.unitt.unitt.core.model.ReportTarget
 import com.unitt.unitt.core.model.UserTab
 import com.unitt.unitt.designsystem.UniTTAvatar
+import com.unitt.unitt.designsystem.UniTTBottomActionBar
+import com.unitt.unitt.designsystem.UniTTBottomTabs
 import com.unitt.unitt.designsystem.UniTTCard
 import com.unitt.unitt.designsystem.UniTTChip
 import com.unitt.unitt.designsystem.UniTTEmptyState
 import com.unitt.unitt.designsystem.UniTTPrimaryButton
+import com.unitt.unitt.designsystem.UniTTScreenScaffold
 import com.unitt.unitt.designsystem.UniTTSecondaryButton
 import com.unitt.unitt.designsystem.UniTTSwitchRow
 import com.unitt.unitt.designsystem.UniTTTextField
@@ -74,8 +81,10 @@ fun UserPrototypeApp(viewModel: UserPrototypeViewModel = viewModel()) {
 
 @Composable
 private fun MainTabs(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize()) {
-        Box(Modifier.weight(1f)) {
+    UniTTScreenScaffold(
+        bottomBar = { BottomTabs(state.activeTab, viewModel::openTab) },
+    ) {
+        Box(Modifier.fillMaxSize()) {
             when (state.activeTab) {
                 UserTab.Home -> HomeScreen(state, viewModel)
                 UserTab.Search -> SearchScreen(state, viewModel)
@@ -84,56 +93,68 @@ private fun MainTabs(state: UserPrototypeUiState, viewModel: UserPrototypeViewMo
                 UserTab.My -> MyPageScreen(viewModel)
             }
         }
-        BottomTabs(state.activeTab, viewModel::openTab)
     }
 }
 
 @Composable
 private fun HomeScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(UniTTTheme.spacing.x16)
             .testTag("user-home-screen"),
+        contentPadding = PaddingValues(UniTTTheme.spacing.x16),
         verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16),
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            UniTTWordmark(compact = true, modifier = Modifier.weight(1f))
-            TextButton(onClick = viewModel::openNotifications, modifier = Modifier.testTag("home-notifications-button")) {
-                Text(stringResource(R.string.notifications), color = UniTTTheme.colors.brandPrimary)
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                UniTTWordmark(compact = true, modifier = Modifier.weight(1f))
+                TextButton(onClick = viewModel::openNotifications, modifier = Modifier.testTag("home-notifications-button")) {
+                    Text(stringResource(R.string.notifications), color = UniTTTheme.colors.brandPrimary)
+                }
             }
         }
-        Text(stringResource(R.string.home_title), style = UniTTTheme.typography.displayMedium, color = UniTTTheme.colors.textPrimary)
-        Text(stringResource(R.string.home_subtitle), style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textSecondary)
-        UniTTSecondaryButton(
-            text = stringResource(R.string.search),
-            onClick = { viewModel.openSearch() },
-            modifier = Modifier.testTag("home-search-button"),
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
-            MockData.categories.forEach { category ->
-                UniTTChip(
-                    text = category,
-                    selected = state.selectedCategory == category,
-                    onClick = { viewModel.updateSelectedCategory(category) },
-                    modifier = Modifier.testTag(if (category == "교재") "category-textbook-button" else "category-$category"),
-                )
+        item {
+            Text(stringResource(R.string.home_title), style = UniTTTheme.typography.displayMedium, color = UniTTTheme.colors.textPrimary)
+        }
+        item {
+            Text(stringResource(R.string.home_subtitle), style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textSecondary)
+        }
+        item {
+            UniTTSecondaryButton(
+                text = stringResource(R.string.search),
+                onClick = { viewModel.openSearch() },
+                modifier = Modifier.testTag("home-search-button"),
+            )
+        }
+        item {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
+                MockData.categories.forEach { category ->
+                    UniTTChip(
+                        text = category,
+                        selected = state.selectedCategory == category,
+                        onClick = { viewModel.updateSelectedCategory(category) },
+                        modifier = Modifier.testTag(if (category == "교재") "category-textbook-button" else "category-$category"),
+                    )
+                }
             }
         }
         if (state.selectedCategory == "교재") {
-            UniTTCard(modifier = Modifier.testTag("textbook-filter-row")) {
-                Text("이번 학기 교재 · ISBN 자동완성 · 같은 수업 학생 거래", style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
+            item {
+                UniTTCard(modifier = Modifier.testTag("textbook-filter-row")) {
+                    Text("이번 학기 교재 · ISBN 자동완성 · 같은 수업 학생 거래", style = UniTTTheme.typography.bodySmall, color = UniTTTheme.colors.textSecondary)
+                }
             }
         }
         if (state.visibleListings.isEmpty()) {
-            UniTTEmptyState(
-                title = stringResource(R.string.empty_feed_title),
-                body = stringResource(R.string.empty_feed_body),
-                modifier = Modifier.testTag("home-empty-feed"),
-            )
+            item {
+                UniTTEmptyState(
+                    title = stringResource(R.string.empty_feed_title),
+                    body = stringResource(R.string.empty_feed_body),
+                    modifier = Modifier.testTag("home-empty-feed"),
+                )
+            }
         } else {
-            state.visibleListings.forEach { listing ->
+            items(state.visibleListings, key = { it.id }) { listing ->
                 ListingCard(
                     listing = listing,
                     onClick = { viewModel.openProductDetail(listing) },
@@ -146,24 +167,27 @@ private fun HomeScreen(state: UserPrototypeUiState, viewModel: UserPrototypeView
 
 @Composable
 private fun SearchScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(UniTTTheme.spacing.x16)
             .testTag("search-screen"),
+        contentPadding = PaddingValues(UniTTTheme.spacing.x16),
         verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16),
     ) {
-        UniTTTextField(
-            value = state.searchText,
-            onValueChange = viewModel::updateSearchText,
-            label = stringResource(R.string.search),
-            placeholder = "찾고 싶은 물건을 검색해 보세요",
-            modifier = Modifier.testTag("search-field"),
-        )
+        item {
+            UniTTTextField(
+                value = state.searchText,
+                onValueChange = viewModel::updateSearchText,
+                label = stringResource(R.string.search),
+                placeholder = "찾고 싶은 물건을 검색해 보세요",
+                modifier = Modifier.testTag("search-field"),
+            )
+        }
         if (state.searchText.isBlank()) {
-            Text("최근 검색", style = UniTTTheme.typography.labelMedium, color = UniTTTheme.colors.textSecondary)
-            MockData.recentSearches.forEach { item ->
+            item {
+                Text("최근 검색", style = UniTTTheme.typography.labelMedium, color = UniTTTheme.colors.textSecondary)
+            }
+            items(MockData.recentSearches, key = { it }) { item ->
                 UniTTRow(
                     title = item,
                     onClick = { viewModel.updateSearchText(item) },
@@ -171,13 +195,15 @@ private fun SearchScreen(state: UserPrototypeUiState, viewModel: UserPrototypeVi
                 )
             }
         } else if (state.searchResults.isEmpty()) {
-            UniTTEmptyState(
-                title = "검색 결과가 없어요",
-                body = "다른 키워드로 다시 검색해 보세요.",
-                modifier = Modifier.testTag("search-empty-screen"),
-            )
+            item {
+                UniTTEmptyState(
+                    title = "검색 결과가 없어요",
+                    body = "다른 키워드로 다시 검색해 보세요.",
+                    modifier = Modifier.testTag("search-empty-screen"),
+                )
+            }
         } else {
-            state.searchResults.forEach { listing ->
+            items(state.searchResults, key = { it.id }) { listing ->
                 ListingCard(
                     listing = listing,
                     onClick = { viewModel.openProductDetail(listing) },
@@ -191,16 +217,39 @@ private fun SearchScreen(state: UserPrototypeUiState, viewModel: UserPrototypeVi
 @Composable
 private fun ProductDetailScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
     val listing = state.selectedListing ?: MockData.listings.first()
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("product-detail-screen")) {
-        UniTTTopBar(
-            title = stringResource(R.string.product_detail),
-            onBack = viewModel::backToMain,
-            rightText = stringResource(R.string.report),
-            onRight = { viewModel.startReport() },
-        )
+    UniTTScreenScaffold(
+        modifier = Modifier.testTag("product-detail-screen"),
+        topBar = {
+            UniTTTopBar(
+                title = stringResource(R.string.product_detail),
+                onBack = viewModel::backToMain,
+                rightText = stringResource(R.string.report),
+                onRight = { viewModel.startReport() },
+            )
+        },
+        bottomBar = {
+            if (!listing.isMine) {
+                UniTTBottomActionBar {
+                    if (listing.status == ListingStatus.Reserved) {
+                        UniTTPrimaryButton(
+                            stringResource(R.string.join_waitlist),
+                            onClick = {},
+                            modifier = Modifier.weight(1f).testTag("join-waitlist-button"),
+                        )
+                    } else {
+                        UniTTPrimaryButton(
+                            stringResource(R.string.start_chat),
+                            onClick = { viewModel.openTab(UserTab.Chat) },
+                            modifier = Modifier.weight(1f).testTag("start-chat-button"),
+                        )
+                    }
+                }
+            }
+        },
+    ) {
         Column(
             modifier = Modifier
-                .weight(1f)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(UniTTTheme.spacing.x16),
             verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16),
@@ -238,10 +287,6 @@ private fun ProductDetailScreen(state: UserPrototypeUiState, viewModel: UserProt
                     Text("내가 올린 상품이에요.", style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textPrimary)
                     UniTTSecondaryButton("상태 관리", onClick = {})
                 }
-            } else if (listing.status == ListingStatus.Reserved) {
-                UniTTPrimaryButton(stringResource(R.string.join_waitlist), onClick = {}, modifier = Modifier.testTag("join-waitlist-button"))
-            } else {
-                UniTTPrimaryButton(stringResource(R.string.start_chat), onClick = { viewModel.openTab(UserTab.Chat) }, modifier = Modifier.testTag("start-chat-button"))
             }
         }
     }
@@ -266,12 +311,14 @@ private fun ListingCreateScreen(state: UserPrototypeUiState, viewModel: UserProt
                 CreateStep.Preview -> CreatePreviewStep(state)
                 CreateStep.Done -> CreateDoneScreen(viewModel)
             }
-            if (state.createStep != CreateStep.Done) {
+        }
+        if (state.createStep != CreateStep.Done) {
+            UniTTBottomActionBar(applyNavigationPadding = false) {
                 UniTTPrimaryButton(
                     text = if (state.createStep == CreateStep.Preview) stringResource(R.string.create_submit) else stringResource(R.string.create_next),
                     enabled = state.createStep != CreateStep.Info || state.canSubmitListing,
                     onClick = viewModel::nextCreateStep,
-                    modifier = Modifier.testTag(if (state.createStep == CreateStep.Preview) "create-submit" else "create-next"),
+                    modifier = Modifier.weight(1f).testTag(if (state.createStep == CreateStep.Preview) "create-submit" else "create-next"),
                 )
             }
         }
@@ -370,9 +417,15 @@ private fun CreateDoneScreen(viewModel: UserPrototypeViewModel) {
 
 @Composable
 private fun ChatListScreen(viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(UniTTTheme.spacing.x16).testTag("chat-list-screen"), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
-        Text(stringResource(R.string.chat), style = UniTTTheme.typography.displayMedium, color = UniTTTheme.colors.textPrimary)
-        MockData.chats.forEach { chat ->
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().testTag("chat-list-screen"),
+        contentPadding = PaddingValues(UniTTTheme.spacing.x16),
+        verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12),
+    ) {
+        item {
+            Text(stringResource(R.string.chat), style = UniTTTheme.typography.displayMedium, color = UniTTTheme.colors.textPrimary)
+        }
+        items(MockData.chats, key = { it.id }) { chat ->
             ChatRow(chat, onClick = { viewModel.openChatRoom(chat) })
         }
     }
@@ -381,7 +434,7 @@ private fun ChatListScreen(viewModel: UserPrototypeViewModel) {
 @Composable
 private fun ChatRoomScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
     val chat = state.selectedChat ?: MockData.chats.first()
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("chat-room-screen")) {
+    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("chat-room-screen")) {
         UniTTTopBar(title = chat.name, onBack = viewModel::backToMain, rightText = "메뉴", onRight = viewModel::toggleChatActions)
         Column(Modifier.weight(1f).padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16)) {
             UniTTCard {
@@ -416,21 +469,47 @@ private fun AppointmentSheet(viewModel: UserPrototypeViewModel) {
 
 @Composable
 private fun TradePanelScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("trade-panel-screen")) {
-        UniTTTopBar(title = stringResource(R.string.trade_status), onBack = viewModel::backToMain)
+    UniTTScreenScaffold(
+        modifier = Modifier.testTag("trade-panel-screen"),
+        topBar = { UniTTTopBar(title = stringResource(R.string.trade_status), onBack = viewModel::backToMain) },
+        bottomBar = {
+            UniTTBottomActionBar {
+                UniTTSecondaryButton(
+                    stringResource(R.string.open_dispute),
+                    onClick = viewModel::disputeTrade,
+                    modifier = Modifier.weight(1f).testTag("trade-dispute-button"),
+                )
+                UniTTPrimaryButton(
+                    stringResource(R.string.complete_trade),
+                    onClick = viewModel::completeTrade,
+                    modifier = Modifier.weight(1f).testTag("trade-complete-button"),
+                )
+            }
+        },
+    ) {
         Column(Modifier.padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16)) {
             StatusChip(state.tradeStatus)
             Text("약속 시간과 장소를 확인한 뒤 거래 상태를 바꿔 주세요.", style = UniTTTheme.typography.bodyMedium, color = UniTTTheme.colors.textSecondary)
-            UniTTPrimaryButton(stringResource(R.string.complete_trade), onClick = viewModel::completeTrade, modifier = Modifier.testTag("trade-complete-button"))
-            UniTTSecondaryButton(stringResource(R.string.open_dispute), onClick = viewModel::disputeTrade, modifier = Modifier.testTag("trade-dispute-button"))
         }
     }
 }
 
 @Composable
 private fun ReviewScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("review-screen")) {
-        UniTTTopBar(title = stringResource(R.string.write_review), onBack = viewModel::backToMain)
+    UniTTScreenScaffold(
+        modifier = Modifier.testTag("review-screen"),
+        topBar = { UniTTTopBar(title = stringResource(R.string.write_review), onBack = viewModel::backToMain) },
+        bottomBar = {
+            UniTTBottomActionBar {
+                UniTTPrimaryButton(
+                    stringResource(R.string.submit_review),
+                    enabled = state.canSubmitReview,
+                    onClick = viewModel::submitReview,
+                    modifier = Modifier.weight(1f).testTag("review-submit-button"),
+                )
+            }
+        },
+    ) {
         Column(Modifier.padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16)) {
             Row(horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
                 (1..5).forEach { star ->
@@ -440,14 +519,13 @@ private fun ReviewScreen(state: UserPrototypeUiState, viewModel: UserPrototypeVi
                 }
             }
             UniTTTextField(state.reviewComment, viewModel::updateReviewComment, "후기", singleLine = false)
-            UniTTPrimaryButton(stringResource(R.string.submit_review), enabled = state.canSubmitReview, onClick = viewModel::submitReview, modifier = Modifier.testTag("review-submit-button"))
         }
     }
 }
 
 @Composable
 private fun ReportFlowScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("report-flow-screen")) {
+    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("report-flow-screen")) {
         UniTTTopBar(title = stringResource(R.string.report), onBack = viewModel::backToMain)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16)) {
             when (state.reportStep) {
@@ -493,7 +571,7 @@ private fun BlockListScreen(state: UserPrototypeUiState, viewModel: UserPrototyp
             viewModel.dismissBlockToast()
         }
     }
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("block-list-screen")) {
+    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("block-list-screen")) {
         UniTTTopBar(title = stringResource(R.string.block_list), onBack = viewModel::backToMain)
         Column(Modifier.padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
             if (state.showingBlockToast) {
@@ -508,7 +586,7 @@ private fun BlockListScreen(state: UserPrototypeUiState, viewModel: UserPrototyp
 
 @Composable
 private fun NotificationsScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("notifications-screen")) {
+    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("notifications-screen")) {
         UniTTTopBar(title = stringResource(R.string.notifications), onBack = viewModel::backToMain, rightText = stringResource(R.string.settings), onRight = viewModel::openNotificationSettings)
         Column(Modifier.padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
@@ -562,7 +640,7 @@ private fun MyPageScreen(viewModel: UserPrototypeViewModel) {
 
 @Composable
 private fun HistoryScreen(viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("history-screen")) {
+    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("history-screen")) {
         UniTTTopBar(title = stringResource(R.string.history), onBack = viewModel::backToMain)
         Column(Modifier.verticalScroll(rememberScrollState()).padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
             MockData.listings.filter { it.isMine }.forEach { listing -> ListingCard(listing, onClick = {}) }
@@ -572,7 +650,7 @@ private fun HistoryScreen(viewModel: UserPrototypeViewModel) {
 
 @Composable
 private fun SettingsScreen(state: UserPrototypeUiState, viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("settings-screen")) {
+    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("settings-screen")) {
         UniTTTopBar(title = stringResource(R.string.settings), onBack = viewModel::backToMain)
         Column(Modifier.verticalScroll(rememberScrollState()).padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x12)) {
             UniTTSwitchRow("푸시 알림", state.pushEnabled, viewModel::togglePushEnabled)
@@ -598,7 +676,7 @@ private fun SettingsScreen(state: UserPrototypeUiState, viewModel: UserPrototype
 
 @Composable
 private fun WithdrawScreen(viewModel: UserPrototypeViewModel) {
-    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).testTag("withdraw-screen")) {
+    Column(Modifier.fillMaxSize().background(UniTTTheme.colors.backgroundPage).navigationBarsPadding().testTag("withdraw-screen")) {
         UniTTTopBar(title = stringResource(R.string.withdraw), onBack = viewModel::backToMain)
         Column(Modifier.padding(UniTTTheme.spacing.x16), verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x16)) {
             Text("탈퇴 전 확인해 주세요", style = UniTTTheme.typography.heading1, color = UniTTTheme.colors.textPrimary)
@@ -610,17 +688,11 @@ private fun WithdrawScreen(viewModel: UserPrototypeViewModel) {
 
 @Composable
 private fun BottomTabs(activeTab: UserTab, onSelect: (UserTab) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(UniTTTheme.sizes.tabBarHeight).background(UniTTTheme.colors.backgroundElevated).padding(horizontal = UniTTTheme.spacing.x8),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround,
-    ) {
-        UserTab.entries.forEach { tab ->
-            TextButton(onClick = { onSelect(tab) }, modifier = Modifier.weight(1f).testTag("tab-${tab.label}")) {
-                Text(tab.label, color = if (activeTab == tab) UniTTTheme.colors.brandPrimary else UniTTTheme.colors.textSecondary)
-            }
-        }
-    }
+    UniTTBottomTabs(
+        labels = UserTab.entries.map { it.label },
+        selectedLabel = activeTab.label,
+        onSelect = { label -> UserTab.entries.firstOrNull { it.label == label }?.let(onSelect) },
+    )
 }
 
 @Composable

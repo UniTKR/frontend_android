@@ -4,18 +4,25 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +49,100 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.unitt.unitt.R
+
+@Composable
+fun UniTTScreenScaffold(
+    modifier: Modifier = Modifier,
+    topBar: (@Composable () -> Unit)? = null,
+    bottomBar: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(UniTTTheme.colors.backgroundPage)
+            .imePadding(),
+    ) {
+        if (topBar == null) {
+            Spacer(Modifier.statusBarsPadding())
+        } else {
+            topBar()
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            content = content,
+        )
+        bottomBar?.invoke()
+    }
+}
+
+@Composable
+fun UniTTBottomActionBar(
+    modifier: Modifier = Modifier,
+    applyNavigationPadding: Boolean = true,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(UniTTTheme.colors.backgroundElevated)
+            .then(if (applyNavigationPadding) Modifier.navigationBarsPadding() else Modifier),
+    ) {
+        HorizontalDivider(color = UniTTTheme.colors.borderDefault)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = UniTTTheme.spacing.x16, vertical = UniTTTheme.spacing.x12),
+            horizontalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x10),
+            verticalAlignment = Alignment.CenterVertically,
+            content = content,
+        )
+    }
+}
+
+@Composable
+fun UniTTBottomTabs(
+    labels: List<String>,
+    selectedLabel: String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(UniTTTheme.colors.backgroundElevated)
+            .navigationBarsPadding(),
+    ) {
+        HorizontalDivider(color = UniTTTheme.colors.borderDefault)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(UniTTTheme.sizes.tabBarHeight)
+                .padding(horizontal = UniTTTheme.spacing.x8),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround,
+        ) {
+            labels.forEach { label ->
+                TextButton(
+                    onClick = { onSelect(label) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(UniTTTheme.sizes.touchMinimum)
+                        .testTag("tab-$label"),
+                    contentPadding = PaddingValues(horizontal = UniTTTheme.spacing.x4),
+                ) {
+                    Text(
+                        label,
+                        style = UniTTTheme.typography.labelLarge,
+                        color = if (selectedLabel == label) UniTTTheme.colors.brandPrimary else UniTTTheme.colors.textSecondary,
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun UniTTWordmark(
@@ -111,7 +212,7 @@ fun UniTTSecondaryButton(
             disabledContentColor = UniTTTheme.colors.textDisabled,
         ),
         shape = RoundedCornerShape(UniTTTheme.radius.xl),
-        border = androidx.compose.foundation.BorderStroke(1.dp, UniTTTheme.colors.borderDefault),
+        border = BorderStroke(1.dp, UniTTTheme.colors.borderDefault),
     ) {
         Text(text = text, style = UniTTTheme.typography.labelLarge)
     }
@@ -196,40 +297,55 @@ fun UniTTTopBar(
     rightText: String? = null,
     onRight: (() -> Unit)? = null,
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .height(UniTTTheme.sizes.navBarHeight)
             .background(UniTTTheme.colors.backgroundElevated)
-            .padding(horizontal = UniTTTheme.spacing.x6),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (onBack == null) {
-            Spacer(Modifier.size(UniTTTheme.sizes.touchMinimum))
-        } else {
-            TextButton(onClick = onBack, modifier = Modifier.size(UniTTTheme.sizes.touchMinimum).testTag("top-back-button")) {
-                Text("‹", style = UniTTTheme.typography.heading2, color = UniTTTheme.colors.textPrimary)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(UniTTTheme.sizes.navBarHeight)
+                .padding(horizontal = UniTTTheme.spacing.x6),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onBack == null) {
+                Spacer(Modifier.size(UniTTTheme.sizes.touchMinimum))
+            } else {
+                TextButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(UniTTTheme.sizes.touchMinimum)
+                        .testTag("top-back-button"),
+                    contentPadding = PaddingValues(),
+                ) {
+                    Text("<", style = UniTTTheme.typography.heading2, color = UniTTTheme.colors.textPrimary)
+                }
+            }
+            Text(
+                title,
+                modifier = Modifier.weight(1f),
+                style = UniTTTheme.typography.heading3,
+                color = UniTTTheme.colors.textPrimary,
+                maxLines = 1,
+            )
+            if (rightText == null || onRight == null) {
+                Spacer(Modifier.size(UniTTTheme.sizes.touchMinimum))
+            } else {
+                TextButton(
+                    onClick = onRight,
+                    modifier = Modifier
+                        .height(UniTTTheme.sizes.touchMinimum)
+                        .testTag(if (rightText == "설정") "top-settings-button" else "top-right-button"),
+                    contentPadding = PaddingValues(horizontal = UniTTTheme.spacing.x8),
+                ) {
+                    Text(rightText, style = UniTTTheme.typography.labelMedium, color = UniTTTheme.colors.brandPrimary)
+                }
             }
         }
-        Text(
-            title,
-            modifier = Modifier.weight(1f),
-            style = UniTTTheme.typography.heading3,
-            color = UniTTTheme.colors.textPrimary,
-            maxLines = 1,
-        )
-        if (rightText == null || onRight == null) {
-            Spacer(Modifier.size(UniTTTheme.sizes.touchMinimum))
-        } else {
-            TextButton(
-                onClick = onRight,
-                modifier = Modifier.height(UniTTTheme.sizes.touchMinimum).testTag(if (rightText == "설정") "top-settings-button" else "top-right-button"),
-            ) {
-                Text(rightText, style = UniTTTheme.typography.labelMedium, color = UniTTTheme.colors.brandPrimary)
-            }
-        }
+        HorizontalDivider(color = UniTTTheme.colors.borderDefault)
     }
-    HorizontalDivider(color = UniTTTheme.colors.borderDefault)
 }
 
 @Composable

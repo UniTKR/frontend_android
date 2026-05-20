@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -100,13 +103,14 @@ private fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .background(UniTTTheme.colors.backgroundPage)
             .verticalScroll(rememberScrollState())
             .padding(UniTTTheme.spacing.x16)
             .testTag("login-screen"),
         verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x24),
     ) {
-        Spacer(Modifier.height(UniTTTheme.spacing.x48))
+        Spacer(Modifier.height(UniTTTheme.spacing.x24))
         UniTTWordmark()
         Column(verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x8)) {
             Text(
@@ -280,6 +284,8 @@ fun AuthScaffold(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .navigationBarsPadding()
+                .imePadding()
                 .padding(UniTTTheme.spacing.x16),
             verticalArrangement = Arrangement.spacedBy(UniTTTheme.spacing.x20),
             content = content,

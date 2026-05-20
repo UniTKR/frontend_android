@@ -109,8 +109,8 @@ data class UniTTSizes(
     val touchMinimum: Dp = 48.dp,
     val inputHeight: Dp = 48.dp,
     val navBarHeight: Dp = 48.dp,
-    val ctaHeight: Dp = 50.dp,
-    val tabBarHeight: Dp = 64.dp,
+    val ctaHeight: Dp = 52.dp,
+    val tabBarHeight: Dp = 56.dp,
     val avatarXL: Dp = 80.dp,
 )
 
